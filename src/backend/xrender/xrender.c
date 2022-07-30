@@ -105,7 +105,7 @@ static void compose(backend_t *base, struct managed_win *w, void *img_data, int 
 	// Are we rounding corners?
 	session_t *ps = base->ps;
 	int cr = (w ? w->corner_radius : 0);
-	int ct = w->corner_type;
+	int ct = (w ? w->corner_type : 0);
 
 	if (!img->has_alpha || cr == 0) {
 		x_set_picture_clip_region(base->c, xd->back[2], 0, 0, &reg);

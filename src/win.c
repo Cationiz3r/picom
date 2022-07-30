@@ -1523,7 +1523,7 @@ struct win *fill_win(session_t *ps, struct win *w) {
 	    .shadow_paint = PAINT_INIT,
 
 	    .corner_radius = 0,
-	    .corner_type = 3,
+	    .corner_type = 0,
 	};
 
 	assert(!w->destroyed);
