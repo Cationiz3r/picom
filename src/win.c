@@ -1078,18 +1078,19 @@ static void win_determine_blur_background(session_t *ps, struct managed_win *w) 
 static void win_determine_rounded_corners(session_t *ps, struct managed_win *w) {
 	if (ps->o.corner_radius == 0) {
 		w->corner_radius = 0;
+		w->corner_type = 0;
 		return;
 	}
-
-	w->corner_type = 4; //REMOVE ME
 
 	// Don't round full screen windows & excluded windows
 	if ((w && win_is_fullscreen(ps, w)) ||
 	    c2_match(ps, w, ps->o.rounded_corners_blacklist, NULL)) {
 		w->corner_radius = 0;
+		w->corner_type = 0;
 		log_debug("Not rounding corners for window %#010x", w->base.id);
 	} else {
 		w->corner_radius = ps->o.corner_radius;
+		w->corner_type = 15; // All rounded
 		log_debug("Rounding corners for window %#010x", w->base.id);
 
 		// HACK: we reset this so we can query the color once
