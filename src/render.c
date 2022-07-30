@@ -230,14 +230,22 @@ uint32_t make_rectangle(int x, int y, int wid, int hei, xcb_render_trapezoid_t t
 }
 
 uint32_t make_rounded_window_shape(xcb_render_trapezoid_t traps[], uint32_t max_ntraps,
-                                   int cr, int wid, int hei) {
-	uint32_t n = make_circle(cr, cr, cr, max_ntraps, traps);
-	n += make_circle(wid - cr, cr, cr, max_ntraps, traps + n);
-	n += make_circle(wid - cr, hei - cr, cr, max_ntraps, traps + n);
-	n += make_circle(cr, hei - cr, cr, max_ntraps, traps + n);
+                                   int cr, int ct, int wid, int hei) {
+	int tl=0, tr=wid, bl=0, br=wid;
+	uint32_t n = 0;
+
+	// Top part
+	if (ct & 1) { tl = cr;       n += make_circle(cr,       cr, cr, max_ntraps, traps + n); }
+	if (ct & 2) { tr = wid - cr; n += make_circle(wid - cr, cr, cr, max_ntraps, traps + n); }
+	n += make_rectangle(tl, 0, tr - tl, cr, traps + n);
+
+	// Bottom part
+	if (ct & 8) { bl = cr;       n += make_circle(cr,       hei - cr, cr, max_ntraps, traps + n); }
+	if (ct & 4) { br = wid - cr; n += make_circle(wid - cr, hei - cr, cr, max_ntraps, traps + n); }
+	n += make_rectangle(bl, hei - cr, br - bl, cr, traps + n);
+
+	// Middle part
 	n += make_rectangle(0, cr, wid, hei - 2 * cr, traps + n);
-	n += make_rectangle(cr, 0, wid - 2 * cr, cr, traps + n);
-	n += make_rectangle(cr, hei - cr, wid - 2 * cr, cr, traps + n);
 	return n;
 }
 
@@ -269,7 +277,7 @@ void render(session_t *ps, struct managed_win *w attr_unused, int x, int y, int 
 				xcb_render_trapezoid_t traps[4 * max_ntraps + 3];
 
 				uint32_t n = make_rounded_window_shape(
-				    traps, max_ntraps, cr, fullwid, fullhei);
+				    traps, max_ntraps, cr, 3, fullwid, fullhei);
 
 				xcb_render_trapezoids(
 				    ps->c, XCB_RENDER_PICT_OP_OVER, alpha_pict, p_tmp,
@@ -750,7 +758,7 @@ win_paint_shadow(session_t *ps, struct managed_win *w, region_t *reg_paint) {
 			uint32_t max_ntraps = to_u32_checked(w->corner_radius);
 			xcb_render_trapezoid_t traps[4 * max_ntraps + 3];
 			uint32_t n = make_rounded_window_shape(
-			    traps, max_ntraps, w->corner_radius, w->widthb, w->heightb);
+			    traps, max_ntraps, w->corner_radius, 3, w->widthb, w->heightb);
 
 			td = x_create_picture_with_standard(
 			    ps->c, ps->root, w->widthb, w->heightb,
@@ -907,7 +915,7 @@ win_blur_background(session_t *ps, struct managed_win *w, xcb_render_picture_t t
 			uint32_t max_ntraps = to_u32_checked(cr);
 			xcb_render_trapezoid_t traps[4 * max_ntraps + 3];
 			uint32_t n =
-			    make_rounded_window_shape(traps, max_ntraps, cr, wid, hei);
+			    make_rounded_window_shape(traps, max_ntraps, cr, 3, wid, hei);
 
 			td = x_create_picture_with_standard(
 			    ps->c, ps->root, wid, hei, XCB_PICT_STANDARD_ARGB_32, 0, 0);
