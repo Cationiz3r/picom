@@ -319,6 +319,11 @@ static inline void parse_wintype_config(const config_t *cfg, const char *member_
 			mask->corner_radius = true;
             //log_warn("%s: corner-radius: %d", member_name, ival);
 		}
+		if (config_setting_lookup_int(setting, "corner-type", &ival)) {
+			o->corner_type = ival;
+			mask->corner_type = true;
+            //log_warn("%s: corner-radius: %d", member_name, ival);
+		}
         if (config_setting_lookup_int(setting, "round-borders", &ival)) {
 			o->round_borders = ival;
 			mask->round_borders = true;

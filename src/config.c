@@ -539,6 +539,9 @@ void set_default_winopts(options_t *opt, win_option_mask_t *mask, bool shadow_en
         if (!mask[i].corner_radius) {
             opt->wintype_option[i].corner_radius = -1;
         }
+        if (!mask[i].corner_type) {
+            opt->wintype_option[i].corner_type = -1;
+        }
         if (!mask[i].round_borders) {
             opt->wintype_option[i].round_borders = -1;
         }

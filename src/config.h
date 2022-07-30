@@ -46,6 +46,7 @@ typedef struct win_option_mask {
 	bool redir_ignore : 1;
 	bool opacity : 1;
 	bool corner_radius : 1;
+	bool corner_type : 1;
 	bool round_borders : 1;
 } win_option_mask_t;
 
@@ -58,6 +59,7 @@ typedef struct win_option {
 	bool redir_ignore;
 	double opacity;
 	int corner_radius;
+	int corner_type;
 	int round_borders;
 } win_option_t;
 

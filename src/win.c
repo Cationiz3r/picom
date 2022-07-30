@@ -1104,6 +1104,12 @@ static void win_determine_rounded_corners(session_t *ps, struct managed_win *w) 
 		    w->corner_radius = ps->o.wintype_option[w->window_type].corner_radius;
 		    //log_warn("xy(%d %d) wh(%d %d) wintypes:corner_radius: %d", w->g.x, w->g.y, w->widthb, w->heightb, w->corner_radius);
 		}
+		if (!safe_isnan(ps->o.wintype_option[w->window_type].corner_type) &&
+		    ps->o.wintype_option[w->window_type].corner_type >= 0 &&
+		    ps->o.wintype_option[w->window_type].corner_type <= 15) {
+		    w->corner_type = ps->o.wintype_option[w->window_type].corner_type;
+		    //log_warn("xy(%d %d) wh(%d %d) wintypes:corner_radius: %d", w->g.x, w->g.y, w->widthb, w->heightb, w->corner_radius);
+		}
 
 		void *val = NULL;
 		if (c2_match(ps, w, ps->o.round_borders_rules, &val)) {
