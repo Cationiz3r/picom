@@ -250,7 +250,7 @@ uint32_t make_rounded_window_shape(xcb_render_trapezoid_t traps[], uint32_t max_
 }
 
 void render(session_t *ps, struct managed_win *w attr_unused, int x, int y, int dx, int dy, int wid, int hei, int fullwid,
-            int fullhei, double opacity, bool argb, bool neg, int cr,
+            int fullhei, double opacity, bool argb, bool neg, int cr, int ct,
             xcb_render_picture_t pict, glx_texture_t *ptex, const region_t *reg_paint,
             const glx_prog_main_t *pprogram, clip_t *clip) {
 	switch (ps->o.backend) {
@@ -277,7 +277,7 @@ void render(session_t *ps, struct managed_win *w attr_unused, int x, int y, int 
 				xcb_render_trapezoid_t traps[4 * max_ntraps + 3];
 
 				uint32_t n = make_rounded_window_shape(
-				    traps, max_ntraps, cr, 3, fullwid, fullhei);
+				    traps, max_ntraps, cr, ct, fullwid, fullhei);
 
 				xcb_render_trapezoids(
 				    ps->c, XCB_RENDER_PICT_OP_OVER, alpha_pict, p_tmp,
@@ -366,7 +366,7 @@ paint_region(session_t *ps, struct managed_win *w, int x, int y, int wid, int he
 	const bool neg = (w && w->invert_color);
 
 	render(ps, w, x, y, dx, dy, wid, hei, fullwid, fullhei, opacity, argb, neg,
-	       w ? w->corner_radius : 0, pict,
+	       w ? w->corner_radius : 0, 3, pict, //REMOVE ME
 	       (w ? w->paint.ptex : ps->root_tile_paint.ptex), reg_paint,
 #ifdef CONFIG_OPENGL
 	       w ? &ps->glx_prog_win : NULL
@@ -789,7 +789,7 @@ win_paint_shadow(session_t *ps, struct managed_win *w, region_t *reg_paint) {
 	    .y = -(w->shadow_dy),
 	};
 	render(ps, w, 0, 0, w->g.x + w->shadow_dx, w->g.y + w->shadow_dy, w->shadow_width,
-	       w->shadow_height, w->widthb, w->heightb, w->shadow_opacity, true, false, 0,
+	       w->shadow_height, w->widthb, w->heightb, w->shadow_opacity, true, false, 0, 0,
 	       w->shadow_paint.pict, w->shadow_paint.ptex, reg_paint, NULL,
 	       should_clip ? &clip : NULL);
 	if (td) {
@@ -879,6 +879,7 @@ win_blur_background(session_t *ps, struct managed_win *w, xcb_render_picture_t t
 	const auto wid = to_u16_checked(w->widthb);
 	const auto hei = to_u16_checked(w->heightb);
 	const int cr = w ? w->corner_radius : 0;
+	const int ct = 3; //REMOVE ME
 
 	double factor_center = 1.0;
 	// Adjust blur strength according to window opacity, to make it appear
@@ -915,7 +916,7 @@ win_blur_background(session_t *ps, struct managed_win *w, xcb_render_picture_t t
 			uint32_t max_ntraps = to_u32_checked(cr);
 			xcb_render_trapezoid_t traps[4 * max_ntraps + 3];
 			uint32_t n =
-			    make_rounded_window_shape(traps, max_ntraps, cr, 3, wid, hei);
+			    make_rounded_window_shape(traps, max_ntraps, cr, ct, wid, hei);
 
 			td = x_create_picture_with_standard(
 			    ps->c, ps->root, wid, hei, XCB_PICT_STANDARD_ARGB_32, 0, 0);
