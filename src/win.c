@@ -1081,6 +1081,8 @@ static void win_determine_rounded_corners(session_t *ps, struct managed_win *w) 
 		return;
 	}
 
+	w->corner_type = 4; //REMOVE ME
+
 	// Don't round full screen windows & excluded windows
 	if ((w && win_is_fullscreen(ps, w)) ||
 	    c2_match(ps, w, ps->o.rounded_corners_blacklist, NULL)) {
@@ -1101,7 +1103,7 @@ static void win_determine_rounded_corners(session_t *ps, struct managed_win *w) 
 		    w->corner_radius = ps->o.wintype_option[w->window_type].corner_radius;
 		    //log_warn("xy(%d %d) wh(%d %d) wintypes:corner_radius: %d", w->g.x, w->g.y, w->widthb, w->heightb, w->corner_radius);
 		}
-		
+
 		void *val = NULL;
 		if (c2_match(ps, w, ps->o.round_borders_rules, &val)) {
 		    w->border_width = (uint16_t)((long)val);
@@ -1109,7 +1111,7 @@ static void win_determine_rounded_corners(session_t *ps, struct managed_win *w) 
 		} else {
 		    w->border_width = 0;
 		}
-		
+
 		if (w && c2_match(ps, w, ps->o.round_borders_blacklist, NULL)) {
 		    w->round_borders = 0;
 		} else {
@@ -1521,6 +1523,7 @@ struct win *fill_win(session_t *ps, struct win *w) {
 	    .shadow_paint = PAINT_INIT,
 
 	    .corner_radius = 0,
+	    .corner_type = 3,
 	};
 
 	assert(!w->destroyed);

@@ -220,6 +220,8 @@ struct managed_win {
 
 	/// Radius of rounded window corners
 	int corner_radius;
+	/// Which corners to round
+	int corner_type;
 	bool round_borders;
 	float border_col[4];
     uint16_t border_width;
