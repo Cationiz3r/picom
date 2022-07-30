@@ -86,7 +86,7 @@ struct _xrender_image_data {
 	bool owned;
 };
 
-uint32_t make_rounded_window_shape(xcb_render_trapezoid_t traps[], uint32_t max_ntraps, int cr, int wid, int hei);
+uint32_t make_rounded_window_shape(xcb_render_trapezoid_t traps[], uint32_t max_ntraps, int cr, int ct, int wid, int hei);
 
 static void compose(backend_t *base, struct managed_win *w, void *img_data, int dst_x, int dst_y,
                     const region_t *reg_paint, const region_t *reg_visible) {
@@ -105,6 +105,7 @@ static void compose(backend_t *base, struct managed_win *w, void *img_data, int 
 	// Are we rounding corners?
 	session_t *ps = base->ps;
 	int cr = (w ? w->corner_radius : 0);
+	int ct = w->corner_type;
 
 	if (!img->has_alpha || cr == 0) {
 		x_set_picture_clip_region(base->c, xd->back[2], 0, 0, &reg);
@@ -135,7 +136,7 @@ static void compose(backend_t *base, struct managed_win *w, void *img_data, int 
 		xcb_render_trapezoid_t traps[4 * max_ntraps + 3];
 
 		uint32_t n = make_rounded_window_shape(
-		    traps, max_ntraps, cr, fullwid, fullhei);
+		    traps, max_ntraps, cr, ct, fullwid, fullhei);
 
 		xcb_render_trapezoids(
 		    ps->c, XCB_RENDER_PICT_OP_OVER, alpha_pict, p_tmp,
@@ -294,7 +295,7 @@ static bool blur(backend_t *backend_data, double opacity, void *ctx_,
 static bool x_round(struct backend_base *backend_data attr_unused, struct managed_win *w attr_unused,
                 void *ctx_ attr_unused, void *image_data attr_unused, const region_t *reg_blur attr_unused,
                 const region_t *reg_visible attr_unused) {
-	
+
 	// dummy implementation, we already perform the rounding in compose
 	// TODO: should move the compose code here and call it from here
 	return true;
@@ -730,7 +731,7 @@ struct backend_operations xrender_ops = {
     .destroy_round_context = destroy_round_context,
     .get_blur_size = get_blur_size,
 	.store_back_texture = store_back_texture
-	
+
 };
 
 // vim: set noet sw=8 ts=8:
