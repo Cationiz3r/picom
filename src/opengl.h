@@ -53,6 +53,8 @@ typedef struct {
 	GLuint prog;
 	/// Location of uniform "radius" in rounded-corners GLSL program.
 	GLint unifm_radius;
+	/// Location of uniform "type" in rounded-corners GLSL program.
+	GLint unifm_type;
 	/// Location of uniform "texcoord" in rounded-corners GLSL program.
 	GLint unifm_texcoord;
 	/// Location of uniform "texsize" in rounded-corners GLSL program.
@@ -147,7 +149,7 @@ bool glx_blur_dst(session_t *ps, int dx, int dy, int width, int height, float z,
 
 bool glx_round_corners_dst(session_t *ps, struct managed_win *w,
                            const glx_texture_t *ptex, int dx, int dy, int width,
-                           int height, float z, float cr, const region_t *reg_tgt);
+                           int height, float z, float cr, float ct, const region_t *reg_tgt);
 
 GLuint glx_create_shader(GLenum shader_type, const char *shader_str);
 

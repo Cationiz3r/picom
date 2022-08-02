@@ -1161,7 +1161,8 @@ void paint_all(session_t *ps, struct managed_win *t, bool ignore_damage) {
 				glx_round_corners_dst(ps, w, w->glx_texture_bg, w->g.x,
 				                      w->g.y, wid, hei,
 				                      (float)ps->psglx->z - 0.5f,
-				                      (float)w->corner_radius, &reg_tmp);
+				                      (float)w->corner_radius, (float)w->corner_type,
+				                      &reg_tmp);
 			}
 #endif
 		}

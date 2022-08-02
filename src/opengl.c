@@ -108,6 +108,7 @@ bool glx_init(session_t *ps, bool need_render) {
 		ps->psglx->round_passes = ccalloc(1, glx_round_pass_t);
 		glx_round_pass_t *ppass = ps->psglx->round_passes;
 		ppass->unifm_radius = -1;
+		ppass->unifm_type = -1;
 		ppass->unifm_texcoord = -1;
 		ppass->unifm_texsize = -1;
 		ppass->unifm_borderw = -1;
@@ -566,6 +567,7 @@ bool glx_init_rounded_corners(session_t *ps) {
 		}                                                                        \
 	}
 	P_GET_UNIFM_LOC("u_radius", unifm_radius);
+	P_GET_UNIFM_LOC("u_type", unifm_type);
 	P_GET_UNIFM_LOC("u_texcoord", unifm_texcoord);
 	P_GET_UNIFM_LOC("u_texsize", unifm_texsize);
 	P_GET_UNIFM_LOC("u_borderw", unifm_borderw);
@@ -1062,7 +1064,7 @@ bool glx_load_prog_main(const char *vshader_str, const char *fshader_str,
  * Initialize GLX blur filter.
  */
 bool glx_init_blur(session_t *ps) {
-	
+
 	switch (ps->o.blur_method) {
 	case BLUR_METHOD_DUAL_KAWASE:
 		return glx_init_dual_kawase_blur(ps);
@@ -1618,7 +1620,7 @@ glx_conv_blur_dst_end:
 
 // TODO: this is a mess and needs a more consistent way of getting the border pixel
 // I tried looking for a notify event for XCB_CW_BORDER_PIXEL (in xcb_create_window())
-// or a way to get the pixels from xcb_render_picture_t but the documentation for 
+// or a way to get the pixels from xcb_render_picture_t but the documentation for
 // the xcb_xrender extension is literaly non existent...
 bool glx_read_border_pixel(struct managed_win *w, int root_height, int x, int y,
 						int width attr_unused, int height, int cr, float *ppixel)
@@ -1660,14 +1662,14 @@ bool glx_read_border_pixel(struct managed_win *w, int root_height, int x, int y,
 	//log_warn("xy(%d, %d), glxy(%d %d) wh(%d %d), border_col(%.2f, %.2f, %.2f, %.2f)",
 	//	x, y, openglx, opengly, width, height,
 	//	(float)w->border_col[0], (float)w->border_col[1], (float)w->border_col[2], (float)w->border_col[3]);
-	
+
 	gl_check_err();
-	
+
 	return true;
 }
 
 bool glx_round_corners_dst(session_t *ps, struct managed_win *w, const glx_texture_t *ptex,
-                           int dx, int dy, int width, int height, float z, float cr,
+                           int dx, int dy, int width, int height, float z, float cr, float ct,
                            const region_t *reg_tgt attr_unused) {
 	assert(ps->psglx->round_passes->prog);
 	bool ret = false;
@@ -1703,6 +1705,9 @@ bool glx_round_corners_dst(session_t *ps, struct managed_win *w, const glx_textu
 
 		if (ppass->unifm_radius >= 0) {
 			glUniform1f(ppass->unifm_radius, cr);
+		}
+		if (ppass->unifm_type >= 0) {
+			glUniform1f(ppass->unifm_type, ct);
 		}
 		if (ppass->unifm_texcoord >= 0) {
 			glUniform2f(ppass->unifm_texcoord, (float)dx, (float)dy);
@@ -1826,11 +1831,11 @@ glx_dualkawase_fbo_blur_dst(session_t *ps, int dx, int dy, int width, int height
 	const bool have_scissors = glIsEnabled(GL_SCISSOR_TEST);
 	const bool have_stencil = glIsEnabled(GL_STENCIL_TEST);
 	bool ret = false;
-	
+
 	int iterations = ps->o.blur_strength.iterations;
 	float offset = ps->o.blur_strength.offset;
 	int expand = ps->o.blur_strength.expand;
-  
+
   	// Calculate copy region size
 	int mdx = dx - expand, mdy = dy - expand, mwidth = width + 2 * expand, mheight = height + 2 * expand;
 #ifdef DEBUG_GLX
@@ -2124,7 +2129,7 @@ bool glx_dual_kawase_blur_dst(session_t *ps, int dx, int dy, int width, int heig
 	// Check if we can scale down blur_strength.iterations
 	while ((mwidth / (1 << (iterations-1))) < 1 || (mheight / (1 << (iterations-1))) < 1)
 		--iterations;
-	
+
 	assert(iterations < MAX_BLUR_PASS);
 	for (int i = 1; i <= iterations; i++) {
 		if (!pbc->textures[i])
