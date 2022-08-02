@@ -969,6 +969,8 @@ bool gl_round(backend_t *backend_data attr_unused, struct managed_win *w, void *
 			glUniform1i(ppass->unifm_tex_bg, (GLint)1);
 	if (ppass->unifm_radius)
 		glUniform1f(ppass->unifm_radius, (float)w->corner_radius);
+	if (ppass->unifm_type)
+		glUniform1f(ppass->unifm_type, (float)w->corner_type);
 	if (ppass->unifm_texcoord)
 		glUniform2f(ppass->unifm_texcoord, (float)w->g.x, (float)w->g.y);
 	if (ppass->unifm_texsize)
@@ -1066,7 +1068,7 @@ bool gl_store_back_texture(backend_t *backend_data attr_unused,
 
 		copyFrameBufferTexture(gd->width, gd->height, gd->back_fbo, gd->back_texture, cctx->bg_fbo[0], cctx->bg_tex[0]);
 	}
-	
+
 	return true;
 }
 
@@ -1827,6 +1829,7 @@ void *gl_create_round_context(struct backend_base *base attr_unused, void *args 
 			uniform sampler2D tex;
 			uniform sampler2D tex_bg;
 			uniform float u_radius;
+			uniform float u_type;
 			uniform float u_borderw;
 			uniform vec2 u_texcoord;
 			uniform vec2 u_texsize;
@@ -1846,6 +1849,7 @@ void *gl_create_round_context(struct backend_base *base attr_unused, void *args 
 				vec4 v4FromColor = u_v4BorderColor;				// Always the border color. If no border, this still should be set
 				vec4 v4ToColor = u_v4WndBgColor;				// Outside corners color = background texture
 				float u_fRadiusPx = u_radius;
+				int u_iType = int(u_type);
 				float u_fHalfBorderThickness = u_borderw / 2.0;
 
 				// misc tests, uncomment for diff rect colors
@@ -1857,6 +1861,19 @@ void *gl_create_round_context(struct backend_base *base attr_unused, void *args 
 
 				vec2 u_v2HalfShapeSizePx = u_texsize/2.0 - vec2(u_fHalfBorderThickness);
 				vec2 v_v2CenteredPos = (gl_FragCoord.xy - u_texsize.xy / 2.0 - coord);
+
+				if ((v_v2CenteredPos.x < u_v2HalfShapeSizePx.x - u_fRadiusPx &&
+			     v_v2CenteredPos.y > u_v2HalfShapeSizePx.y - u_fRadiusPx &&
+			     u_iType%2<1) ||
+			    (v_v2CenteredPos.x > u_v2HalfShapeSizePx.x - u_fRadiusPx &&
+			     v_v2CenteredPos.y > u_v2HalfShapeSizePx.y - u_fRadiusPx &&
+			     u_iType%4<2) ||
+			    (v_v2CenteredPos.x < u_v2HalfShapeSizePx.x - u_fRadiusPx &&
+			     v_v2CenteredPos.y < u_v2HalfShapeSizePx.y - u_fRadiusPx &&
+			     u_iType<8) ||
+			    (v_v2CenteredPos.x > u_v2HalfShapeSizePx.x - u_fRadiusPx &&
+			     v_v2CenteredPos.y < u_v2HalfShapeSizePx.y - u_fRadiusPx &&
+			     u_iType%8<4)) u_fRadiusPx = 0.0;
 
 				float fDist = RectSDF(v_v2CenteredPos, u_v2HalfShapeSizePx, u_fRadiusPx - u_fHalfBorderThickness);
 				if (u_fHalfBorderThickness > 0.0) {
@@ -1901,6 +1918,7 @@ void *gl_create_round_context(struct backend_base *base attr_unused, void *args 
 		// Get uniform addresses
 		pass->unifm_tex_bg = glGetUniformLocationChecked(pass->prog, "tex_bg");
 		pass->unifm_radius = glGetUniformLocationChecked(pass->prog, "u_radius");
+		pass->unifm_type = glGetUniformLocationChecked(pass->prog, "u_type");
 		pass->unifm_texcoord = glGetUniformLocationChecked(pass->prog, "u_texcoord");
 		pass->unifm_texsize = glGetUniformLocationChecked(pass->prog, "u_texsize");
 		pass->unifm_borderw = glGetUniformLocationChecked(pass->prog, "u_borderw");

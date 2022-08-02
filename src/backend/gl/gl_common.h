@@ -45,6 +45,7 @@ typedef struct {
 	GLuint prog;
 	GLint projection_loc;
 	GLint unifm_radius;
+	GLint unifm_type;
 	GLint unifm_texcoord;
 	GLint unifm_texsize;
 	GLint unifm_borderw;
